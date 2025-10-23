@@ -15,3 +15,5 @@ for i in range(200):
         print(hex(msg1.arbitration_id), msg1.dlc, msg1.data)
 
 # 0x510
+
+bus.shutdown()
