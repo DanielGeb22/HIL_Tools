@@ -1,24 +1,38 @@
 import time
+import struct
 import can
 import cantools
 
-TX_PERIOD_S = 0.01  # 100 Hz
+# Configuration
 
-# Values to inject
-WHEEL_SPEED = 4000
-TEST_DURATION_SECONDS = 5.0
+WSS_CAN_ID = 0x705
+TX_PERIOD_S = 0.02              # 50 Hz WSS update
+TEST_DURATION_SECONDS = 5.0     # Run for 5 seconds
 
-dbc = cantools.database.load_file("10.22.25_SRE_Main.dbc")
+# Wheel Speed Sensor Values
+FL = 100
+FR = 100
+RL = 50
+RR = 50
 
-mcm_rpm = dbc.get_message_by_name("MCM_Motor_Position_Info")
-mcm_current = dbc.get_message_by_name("MCM_Current_Info")
-mcm_voltage = dbc.get_message_by_name("MCM_Voltage_Info")
-pl_status_b = dbc.get_message_by_name("VCU_Power_Limit_Status_BMsg")
+def build_payload(fl, fr, rl, rr):
+    """
+    Pack the wheel speeds into a CAN data payloa (x4 16-bit unsigned integers):
+    bytes[0..1]=FL, [2..3]=FR, [4..5]=RL, [6..7]=RR
+    """
+    return struct.pack(">HHHH", fl, fr, rl, rr)
+
+dbc = cantools.database.load_file("10.22.25_SRE_Main.dbc", strict=False)
+
+lc_msg = dbc.get_message_by_name("VCU_LC_Status_A")
+lc_id = lc_msg.frame_id
 
 bus = can.interface.Bus()
 
-print(f"Injecting Wheel Speed={WHEEL_SPEED})
-print("Waiting for Slip Ratio on 0x513...")
+print(f"Injecting Wheel Speed: FL={FL}, FR={FR}, RL={RL}, RR={RR}")
+print("Waiting for Slip Ratio on 0x50B...")
+
+payload = build_payload(FL, FR, RL, RR)
 
 t_end = time.time() + TEST_DURATION_SECONDS
 next_tx = 0.0
@@ -27,19 +41,18 @@ try:
     while time.time() < t_end:
         now = time.time()
         if now >= next_tx:
-            data_pos = mcm_rpm.encode({"MCM_Motor_Speed": int(WHEEL_SPEED)})
-
-            bus.send(can.Message(arbitration_id=mcm_rpm.frame_id, data=data_pos, is_extended_id=False))
-            bus.send(can.Message(arbitration_id=mcm_voltage.frame_id, data=data_vol, is_extended_id=False))
-            bus.send(can.Message(arbitration_id=mcm_current.frame_id, data=data_cur, is_extended_id=False))
-
+            bus.send(can.Message(arbitration_id=WSS_CAN_ID, data=payload, is_extended_id=False))
             next_tx = now + TX_PERIOD_S
 
-        msg = bus.recv(0.001)
-        if msg and msg.arbitration_id == pl_status_b.frame_id:
-            decoded = pl_status_b.decode(bytes(msg.data))
-            torque_nm = decoded.get("VCU_POWERLIMIT_getTorqueCommand_Nm")
-            print(f"[0x512] Torque command: {torque_nm:.1f} Nm")
+        rx = bus.recv(0.001)
+        if rx and rx.arbitration_id == lc_id:
+            try:    
+                decoded = lc_msg.decode(bytes(rx.data))
+                slip_ratio = decoded.get("VCU_LaunchControl_SlipRatioScaled")
+                if slip_ratio is not None:
+                    print(f"[0x50B] SlipRatioScaled = {slip_ratio}")
+            except Exception as e:
+                    print("Decode error:", e)
 
     print("Done.")
 

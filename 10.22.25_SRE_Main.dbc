@@ -45,7 +45,7 @@ BO_ 1535 Enable_Inverter: 4 Vector__XXX
 
 BO_ 2023 Reserved1: 8 Vector__XXX
 
-BO_ 2031 Reserved2: 8 Vector__XXX/Users/sean/Downloads/NLG5_BRUSA.dbc
+BO_ 2031 Reserved2: 8 Vector__XXX
 
 BO_ 160 MCM_Temperature_Set_1: 8 MCM
  SG_ MCM_Gate_Driver_Board_Temp : 48|16@1- (0.1,0) [-3276.8|3276.7] "C" VCU
@@ -782,7 +782,7 @@ BA_ "FieldType" SG_ 100 DRIVER_HEARTBEAT_cmd "DRIVER_HEARTBEAT_cmd";
 
 VAL_ 100 DRIVER_HEARTBEAT_cmd 2 "DRIVER_HEARTBEAT_cmd_REBOOT" 1 "DRIVER_HEARTBEAT_cmd_SYNC" 0 "DRIVER_HEARTBEAT_cmd_NOOP" ;
 VAL_ 1024 CurrentGain 0 "x1" 1 "x2" 2 "x4" 3 "x8" 4 "x16" 5 "x32" ;
-VAL_ 1024 Logging 0 "x1" 1 "x2" 2 "x4" 3 "x8" 4 "x16" 5 "x32" ;/Users/sean/Downloads/NLG5_BRUSA.dbc
+VAL_ 1024 Logging 0 "x1" 1 "x2" 2 "x4" 3 "x8" 4 "x16" 5 "x32" ;
 VAL_ 1536 BMS_State_Request 0 "No State Change Requested" 1 "Request BMS Sleep" 2 "Request BMS Idle" 3 "Request BMS Pre-charge" 4 "Request Clear Faults" ;
 VAL_ 1538 BMS_Imminent_Contactor_Opening_Warning 0 "Contactors will not open within 2 seconds" 1 "Contactors will open within 2 seconds due to fault condition" ;
 VAL_ 1552 BMS_Current_State 0 "BMS Internal Error" 1 "BMS Sleep" 2 "BMS Startup" 3 "BMS Idle" 4 "BMS Pre-charge" 5 "BMS Active" 6 "BMS Fault" ;
